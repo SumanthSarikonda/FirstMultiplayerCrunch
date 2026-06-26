@@ -61,7 +61,6 @@ void UBaseAbilitySystemComponent::InitializeBaseAttributes()
 		float MaxExp = ExpCurve->GetKeyValue(ExpCurve->GetLastKeyHandle());
 		SetNumericAttributeBase(UCHeroAttributeSet::GetMaxLevelExpAttribute(), MaxExp);
 		
-		UE_LOG(LogTemp, Warning, TEXT("Max Level is: %d , max Exp is: %f"), MaxLevel, MaxExp);
 	}
 	
 	ExpUpdate(FOnAttributeChangeData());
@@ -82,6 +81,15 @@ void UBaseAbilitySystemComponent::Client_AbilitySpecLevelUpdated_Implementation(
 	{
 		Spec->Level = NewLevel;
 		AbilitySpecDirtiedCallbacks.Broadcast(*Spec);
+	}
+}
+
+void UBaseAbilitySystemComponent::OnRep_ActivateAbilities()
+{
+	Super::OnRep_ActivateAbilities();
+	for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
+	{
+		AbilitySpecDirtiedCallbacks.Broadcast(Spec);
 	}
 }
 

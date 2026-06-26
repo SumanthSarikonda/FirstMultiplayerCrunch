@@ -20,6 +20,9 @@ namespace  AbilityTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_ManaEmpty)
 	
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Aim)
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Crosshair)
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Focus)
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Target_Updated)
 	
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_CameraShake)
 	
@@ -29,13 +32,16 @@ namespace  AbilityTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AttributeExperience)
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AttributeGold)
 	
+	bool IsActorDead(const AActor* ActorToCheck);
 	bool IsPlayer(const AActor* ActorToCheck);
+	bool ActorHasTag(const AActor* ActorToCheck, const FGameplayTag& Tag);
 	bool IsAbilityAtMaxLevel(const FGameplayAbilitySpec& Spec);
 	
 	float GetStaticCooldownDurationForAbility(const UGameplayAbility* Ability);
 	float GetStaticCostForAbility(const UGameplayAbility* Ability);
 	
 	bool CheckAbilityCost(const FGameplayAbilitySpec& AbilitySpec, const UAbilitySystemComponent& Asc);
+	bool CheckAbilityCostStatic(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& Asc);
 	float GetManaCostFor(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& Asc, int AbilityLevel);
 	float GetCooldownDurationFor(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& Asc, int AbilityLevel);
 	float GetCooldownRemaining(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& Asc);

@@ -21,6 +21,7 @@ public:
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 	
 protected:
+	AActor* GetAimTarget(float AimDist, ETeamAttitude::Type TeamAttitude) const;
 	class UAnimInstance* GetOwnerAnimInst() const;
 	
 	TArray<FHitResult> GetHitResultsFromTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle, float SphereSweepRadius = 30.f, ETeamAttitude::Type TargetTeam = ETeamAttitude::Hostile, bool bShowDebug = false, bool bIgnoreSelf = true) const;
@@ -31,9 +32,17 @@ protected:
 	void PushTarget(AActor* Target, const FVector& PushVelocity);
 	void PushTargets(const TArray<AActor*>& Targets, const FVector& PushVelocity);
 	void PushTargets(const FGameplayAbilityTargetDataHandle& TargetDataHandle,const FVector& PushVelocity);
+	void PushTargetsFromLocation(const FGameplayAbilityTargetDataHandle& TargetDataHandle,const FVector& FromLoc, float PushSpeed);
+	void PushTargetsFromLocation(const TArray<AActor*>& Targets, const FVector& FromLoc, float PushSpeed);
+	void PlayMontageLocally(UAnimMontage* MontageToPlay);
+	void StopMontageAfterCurrentSection(UAnimMontage* MontageToStop);
+	FGenericTeamId GetOwnerTeamId() const;
+	
+	bool IsActorTeamAttitudeIs(const AActor* OtherActor, ETeamAttitude::Type TeamAttitude) const; 
 	
 	ACharacter* GetOwningAvatarCharacter();
 	void ApplyGameplayEffectToHitReultActor(const FHitResult& HitResult, TSubclassOf<UGameplayEffect> GameplayEffect, int Level = 1);
+	void SendLocalGameplayEvent(const FGameplayTag& Tag, const FGameplayEventData& EventData);
 private:
 	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bShouldShowDebug = false;

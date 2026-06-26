@@ -19,6 +19,9 @@ namespace AbilityTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_ManaEmpty, "Status.Mana.Empty", "EmptyHealth");
     
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Aim, "Status.Aim", "Aim");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Crosshair, "Status.Crosshair", "Crosshair");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Focus, "Status.Focus", "Focus");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Target_Updated, "Target.Updated", "TargetUpdated");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayCue_CameraShake, "GameplayCue.CameraShake", "CameraShake");
 	
@@ -30,7 +33,17 @@ namespace AbilityTags
        
 }
 
+bool AbilityTags::IsActorDead(const AActor* ActorToCheck)
+{
+	return ActorHasTag(ActorToCheck, Status_Dead);
+}
+
 bool AbilityTags::IsPlayer(const AActor* ActorToCheck)
+{
+	return ActorHasTag(ActorToCheck, Role_Player);
+}
+
+bool AbilityTags::ActorHasTag(const AActor* ActorToCheck, const FGameplayTag& Tag)
 {
 	const IAbilitySystemInterface* ActorISA = Cast<IAbilitySystemInterface>(ActorToCheck);
 	if (ActorISA)
@@ -38,7 +51,7 @@ bool AbilityTags::IsPlayer(const AActor* ActorToCheck)
 		UAbilitySystemComponent* ActorASC = ActorISA->GetAbilitySystemComponent();
 		if (ActorASC)
 		{
-			return ActorASC->HasMatchingGameplayTag(AbilityTags::Role_Player);
+			return ActorASC->HasMatchingGameplayTag(Tag);
 		}
 	}
 	return false;
@@ -90,8 +103,18 @@ bool AbilityTags::CheckAbilityCost(const FGameplayAbilitySpec& AbilitySpec, cons
 	return false;
 }
 
+bool AbilityTags::CheckAbilityCostStatic(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& Asc)
+{
+	if (AbilityCDO)
+	{
+		return  AbilityCDO->CheckCost(FGameplayAbilitySpecHandle(), Asc.AbilityActorInfo.Get());
+	}
+	
+	return false;
+}
+
 float AbilityTags::GetManaCostFor(const UGameplayAbility* AbilityCDO, const UAbilitySystemComponent& Asc,
-	int AbilityLevel)
+                                  int AbilityLevel)
 {
 	float ManaCost = 0.f;
 	if (AbilityCDO)

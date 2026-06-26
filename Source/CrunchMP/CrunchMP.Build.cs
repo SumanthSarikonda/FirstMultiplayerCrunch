@@ -17,7 +17,8 @@ public class CrunchMP : ModuleRules
 			                                                         "UMG",
 			                                                         "Slate",
 			                                                         "SlateCore",
-			                                                         "AIModule"
+			                                                         "AIModule",
+			                                                         "Niagara"
 		});
 
 		// Uncomment if you are using Slate UI

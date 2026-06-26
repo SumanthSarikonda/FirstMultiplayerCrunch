@@ -9,10 +9,11 @@
 #include "AbilitySystemInterface.h"
 #include "GAS/CGameplayAbilityTypes.h"
 #include "GenericTeamAgentInterface.h"
+#include "Widgets/RenderActorTargetInterace.h"
 #include "BaseCharacter.generated.h"
 
 UCLASS()
-class ABaseCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
+class ABaseCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IRenderActorTargetInterace
 {
 	GENERATED_BODY()
 
@@ -24,6 +25,15 @@ public:
 	bool bIsControlledByLocalPlayer() const;
 	virtual void PossessedBy(AController* NewController) override; // Only Called on the Server Side
 	const TMap<EAbilityInputID, TSubclassOf<UGameplayAbility>>& GetAbilities() const;
+	virtual FVector GetCaptureLocalPos() const override;
+	virtual FRotator GetCaptureLocalRot() const override;
+	
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Capture")
+	FVector HeadShotCaptureLocalPos;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Capture")
+	FRotator HeadShotCaptureLocalRot;
 
 protected:
 	// Called when the game starts or when spawned
@@ -43,7 +53,7 @@ public:
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SendGameplayEventToSelf(const FGameplayTag& EventTag, const FGameplayEventData& EventData);
-	
+	FORCEINLINE bool GetIsInFocusMode() const {return bIsInFocusMode;}
 protected:
 	
 	void UpgradeAbilityWithInputId(EAbilityInputID InputID);
@@ -53,6 +63,10 @@ private:
 	void DeathTagUpdated(const FGameplayTag, int32 NewCount);
 	void StunTagUpdated(const FGameplayTag, int32 NewCount);
 	void AimTagUpdated(const FGameplayTag, int32 NewCount);
+	void FocusTagUpdated(const FGameplayTag, int32 NewCount);
+	
+	bool bIsInFocusMode = false;
+	
 	void SetIsAiming(bool bIsAiming); 
 	virtual void OnAimStateChanged(bool bIsAiming);
 	void MoveSpeedUpdated(const FOnAttributeChangeData& Data);

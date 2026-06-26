@@ -36,7 +36,7 @@ private:
 	TSubclassOf<class ATargetActor_GroundPick> TargetActorClass;
 	
 	UPROPERTY(EditAnywhere, Category = "Anim")
-	UAnimMontage* TargettingMontage;
+	UAnimMontage* TargetingMontage;
 	
 	UPROPERTY(EditAnywhere, Category = "Anim")
 	UAnimMontage* CastMontage;

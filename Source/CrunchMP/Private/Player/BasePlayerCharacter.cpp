@@ -13,6 +13,7 @@
 #include "GAS/AbilitySystemTags.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GAS/CHeroAttributeSet.h"
+#include "Inventory/InventoryComponent.h"
 
 #include "DebugHelper.h"
 
@@ -31,13 +32,12 @@ ABasePlayerCharacter::ABasePlayerCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 	
 	HeroAttributeSet = CreateDefaultSubobject<UCHeroAttributeSet>("Hero Attribute Set");
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>("InventoryComponent");
 }
 
 void ABasePlayerCharacter::PawnClientRestart()
 {
 	Super::PawnClientRestart();
-	
-	ClientSideInit();
 	
 	APlayerController* OwningPlayerController = GetController<APlayerController>();
 	if (OwningPlayerController)
@@ -46,7 +46,6 @@ void ABasePlayerCharacter::PawnClientRestart()
 		if (Subsystem)
 		{
 			Subsystem->RemoveMappingContext(PlayerIMC);
-			
 			Subsystem->AddMappingContext(PlayerIMC, 0);
 		}
 	}
@@ -69,7 +68,15 @@ void ABasePlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		{
 			EIC->BindAction(InputActionPair.Value, ETriggerEvent::Triggered, this, &ABasePlayerCharacter::HandleAbilityInput, InputActionPair.Key);
 		}
+		
+		EIC->BindAction(IA_UseInventoryItem, ETriggerEvent::Triggered, this, &ABasePlayerCharacter::UseInventoryItem);
 	}
+}
+
+void ABasePlayerCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
+{
+	OutLocation = PlayerCam->GetComponentLocation();
+	OutRotation = GetBaseAimRotation();
 }
 
 void ABasePlayerCharacter::Look(const FInputActionValue& Value)
@@ -82,6 +89,9 @@ void ABasePlayerCharacter::Look(const FInputActionValue& Value)
 
 void ABasePlayerCharacter::Move(const FInputActionValue& Value)
 {
+	if (GetIsInFocusMode())
+		return;
+	
 	FVector2D MoveVector = Value.Get<FVector2D>();
 	MoveVector.Normalize();
 	
@@ -107,6 +117,12 @@ void ABasePlayerCharacter::LearnAbilityLeaderDown(const FInputActionValue& Value
 void ABasePlayerCharacter::LearnAbilityLeaderUp(const FInputActionValue& Value)
 {
 	bIsLearnAbilityLeaderDown = false;
+}
+
+void ABasePlayerCharacter::UseInventoryItem(const FInputActionValue& Value)
+{
+	int value = FMath::RoundToInt(Value.Get<float>());
+	InventoryComponent->TryActivateItemInSlot(value-1);
 }
 
 void ABasePlayerCharacter::HandleAbilityInput(const FInputActionValue& Value, EAbilityInputID InputID)
@@ -175,8 +191,8 @@ void ABasePlayerCharacter::OnRespawn()
 
 void ABasePlayerCharacter::OnAimStateChanged(bool bIsAiming)
 {
-	if (bIsControlledByLocalPlayer())
-		LerpCamToLocalOffSet(bIsAiming ? CamAimLocalOffSet : FVector{0.0f});
+	
+	LerpCamToLocalOffSet(bIsAiming ? CamAimLocalOffSet : FVector{0.0f});
 }
 
 void ABasePlayerCharacter::LerpCamToLocalOffSet(const FVector& CamOffSet)

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/IUserObjectListEntry.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "GameplayEffectTypes.h"
 #include "AbilityGauge.generated.h"
 
@@ -61,6 +62,11 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Visual")
 	FName UpgradePointAvailableParamName = "UpgradeAvailable";
 	
+	UPROPERTY(EditDefaultsOnly, Category = "ToolTip")
+	TSubclassOf<class UAbilityToolTip> AbilityToolTipClass;
+	
+	void CreateToolTipWidget(const FAbilityWidgetData* AbilityWidgetData);
+	
 	UPROPERTY(meta=(BindWidget))
 	class UImage* Icon;
 	
@@ -96,7 +102,7 @@ private:
 	void UpdateCooldown();
 	
 	const UAbilitySystemComponent* OwnerAbilitySystemComponent;
-	const FGameplayAbilitySpec* CachedAbilitySpec;
+	FGameplayAbilitySpecHandle CachedAbilitySpecHandle;
 	
 	const FGameplayAbilitySpec* GetAbilitySpec();
 	

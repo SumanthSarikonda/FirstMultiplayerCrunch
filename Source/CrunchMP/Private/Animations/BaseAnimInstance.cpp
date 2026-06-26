@@ -35,7 +35,12 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		BodyPreviousRotation = BodyRot;
 		
 		YawSpeed = BodyRotDelta.Yaw / DeltaSeconds;
-		SmoothedYawSpeed = UKismetMathLibrary::FInterpTo(SmoothedYawSpeed, YawSpeed, DeltaSeconds, YawSpeedSmoothLerpSpeed); //SmootherLean
+		float YawLerpSpeed = YawSpeedSmoothLerpSpeed;
+		if (YawLerpSpeed == 0)
+		{
+			YawLerpSpeed = YawSpeedLerpToZeroSpeed;
+		}
+		SmoothedYawSpeed = UKismetMathLibrary::FInterpTo(SmoothedYawSpeed, YawSpeed, DeltaSeconds, YawLerpSpeed); //SmootherLean
 		FRotator ControlRot = OwnerCharacter->GetBaseAimRotation();
 		LookRotOffset = UKismetMathLibrary::NormalizedDeltaRotator(ControlRot, BodyRot);
 		
@@ -50,7 +55,7 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 void UBaseAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 {
-	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
+	
 }
 
 bool UBaseAnimInstance::ShouldDoFullBody() const
@@ -60,6 +65,5 @@ bool UBaseAnimInstance::ShouldDoFullBody() const
 
 void UBaseAnimInstance::OwnerAimTagChanged(const FGameplayTag Tag, const int32 NewCount)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AimTagChanged - NewCount: %d"), NewCount);
 	bIsAiming = NewCount != 0;
 }

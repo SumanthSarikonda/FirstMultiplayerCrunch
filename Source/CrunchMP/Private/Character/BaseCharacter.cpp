@@ -30,6 +30,7 @@ ABaseCharacter::ABaseCharacter()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Target, ECR_Ignore);
 	
 	BaseAbilitySystemComponent = CreateDefaultSubobject<UBaseAbilitySystemComponent>("BaseAbilitySystemComponent");
+	BaseAbilitySystemComponent->SetIsReplicated(true);
 	BaseAttributeSet = CreateDefaultSubobject<UBaseAttributeSet>("BaseAttributeSet");
 	
 	OverHeadWidgetComponent = CreateDefaultSubobject<UWidgetComponent>("Over Head Widget Component");
@@ -70,6 +71,16 @@ void ABaseCharacter::PossessedBy(AController* NewController)
 const TMap<EAbilityInputID, TSubclassOf<UGameplayAbility>>& ABaseCharacter::GetAbilities() const
 {
 	return BaseAbilitySystemComponent->GetAbilities();
+}
+
+FVector ABaseCharacter::GetCaptureLocalPos() const
+{
+	return HeadShotCaptureLocalPos;
+}
+
+FRotator ABaseCharacter::GetCaptureLocalRot() const
+{
+	return HeadShotCaptureLocalRot;
 }
 
 // Called when the game starts or when spawned
@@ -130,6 +141,7 @@ void ABaseCharacter::BindGASChangeDelegates()
 		BaseAbilitySystemComponent->RegisterGameplayTagEvent(AbilityTags::Status_Dead, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ABaseCharacter::DeathTagUpdated);
 		BaseAbilitySystemComponent->RegisterGameplayTagEvent(AbilityTags::Status_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ABaseCharacter::StunTagUpdated);
 		BaseAbilitySystemComponent->RegisterGameplayTagEvent(AbilityTags::Status_Aim, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ABaseCharacter::AimTagUpdated);
+		BaseAbilitySystemComponent->RegisterGameplayTagEvent(AbilityTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ABaseCharacter::FocusTagUpdated);
 		
 		BaseAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMoveSpeedAttribute()).AddUObject(this, &ABaseCharacter::MoveSpeedUpdated);
 		BaseAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMaxHealthAttribute()).AddUObject(this, &ABaseCharacter::MaxHealthUpdated);
@@ -172,6 +184,11 @@ void ABaseCharacter::StunTagUpdated(const FGameplayTag, int32 NewCount)
 void ABaseCharacter::AimTagUpdated(const FGameplayTag, int32 NewCount)
 {
 	SetIsAiming(NewCount != 0);
+}
+
+void ABaseCharacter::FocusTagUpdated(const FGameplayTag, int32 NewCount)
+{
+	bIsInFocusMode = NewCount > 0;
 }
 
 void ABaseCharacter::SetIsAiming(bool bIsAiming)
@@ -249,7 +266,6 @@ void ABaseCharacter::SetStatusGuageEnabled(bool bIsEnable)
 	}
 	else
 	{
-		Debug::print(TEXT("HB Hidden"));
 		OverHeadWidgetComponent->SetHiddenInGame(true);
 	}
 }

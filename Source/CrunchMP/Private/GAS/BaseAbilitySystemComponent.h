@@ -30,6 +30,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Client_AbilitySpecLevelUpdated(FGameplayAbilitySpecHandle Handle, int NewLevel);
 	
+	virtual void OnRep_ActivateAbilities() override;
+	
 private:
 	void ApplyStartingEffects();
 	void GrantInitialAbilities();

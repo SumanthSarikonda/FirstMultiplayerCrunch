@@ -38,6 +38,44 @@ bool UBaseGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle H
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
+AActor* UBaseGameplayAbility::GetAimTarget(float AimDist, ETeamAttitude::Type TeamAttitude) const
+{
+	AActor* OwnerAvatarActor = GetAvatarActorFromActorInfo();
+	if (OwnerAvatarActor)
+	{
+		FVector Loc;
+		FRotator Rot;
+		OwnerAvatarActor->GetActorEyesViewPoint(Loc, Rot);
+		
+		FVector AimEnd = Loc + Rot.Vector() * AimDist;
+		
+		FCollisionQueryParams CollisionParams;
+		CollisionParams.AddIgnoredActor(OwnerAvatarActor);
+		
+		FCollisionObjectQueryParams CollisionObjectParams;
+		CollisionObjectParams.AddObjectTypesToQuery(ECC_Pawn);
+		
+		if (ShouldShowDebug())
+		{
+			DrawDebugLine(GetWorld(), Loc, AimEnd, FColor::Red, false, 2.f, 0U, 3.f);
+		}
+		
+		TArray<FHitResult> HitResults;
+		if (GetWorld()->LineTraceMultiByObjectType(HitResults, Loc, AimEnd, CollisionObjectParams, CollisionParams))
+		{
+			for (FHitResult& HitResult : HitResults)
+			{
+				if (IsActorTeamAttitudeIs(HitResult.GetActor(), TeamAttitude))
+				{
+					return HitResult.GetActor();
+				}
+			}
+		}
+	}
+	
+	return nullptr;
+}
+
 TArray<FHitResult> UBaseGameplayAbility::GetHitResultsFromTargetData(
 	const FGameplayAbilityTargetDataHandle& TargetDataHandle, float SphereSweepRadius, ETeamAttitude::Type TargetTeam,
 	bool bShowDebug, bool bIgnoreSelf) const
@@ -130,6 +168,70 @@ void UBaseGameplayAbility::PushTargets(const FGameplayAbilityTargetDataHandle& T
 	PushTargets(Targets, PushVelocity);
 }
 
+void UBaseGameplayAbility::PushTargetsFromLocation(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
+	const FVector& FromLoc, float PushSpeed)
+{
+	TArray<AActor*> Targets = UAbilitySystemBlueprintLibrary::GetAllActorsFromTargetData(TargetDataHandle);
+	PushTargetsFromLocation(Targets, FromLoc, PushSpeed);
+}
+
+void UBaseGameplayAbility::PushTargetsFromLocation(const TArray<AActor*>& Targets, const FVector& FromLoc,
+	float PushSpeed)
+{
+	for (AActor* Target : Targets)
+	{
+		FVector PushDir = Target->GetActorLocation() - FromLoc;
+		PushDir.Z = 0;
+		PushDir.Normalize();
+		
+		PushTarget(Target, PushDir * PushSpeed);
+	}
+}
+
+void UBaseGameplayAbility::PlayMontageLocally(UAnimMontage* MontageToPlay)
+{
+	UAnimInstance* OwnerAnimIsnt = GetOwnerAnimInst();
+	if (OwnerAnimIsnt && !OwnerAnimIsnt->Montage_IsPlaying(MontageToPlay))
+	{
+		OwnerAnimIsnt->Montage_Play(MontageToPlay);
+	}
+}
+
+void UBaseGameplayAbility::StopMontageAfterCurrentSection(UAnimMontage* MontageToStop)
+{
+	UAnimInstance* OwnerAnimIsnt = GetOwnerAnimInst();
+	if (OwnerAnimIsnt)
+	{
+		FName CurrenSectionName = OwnerAnimIsnt->Montage_GetCurrentSection(MontageToStop);
+		OwnerAnimIsnt->Montage_SetNextSection(CurrenSectionName, NAME_None, MontageToStop);
+	}
+}
+
+FGenericTeamId UBaseGameplayAbility::GetOwnerTeamId() const
+{
+	IGenericTeamAgentInterface* OwnerTeamInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
+	if (OwnerTeamInterface)
+	{
+		return OwnerTeamInterface->GetGenericTeamId();
+	}
+	
+	return FGenericTeamId::NoTeam;
+}
+
+bool UBaseGameplayAbility::IsActorTeamAttitudeIs(const AActor* OtherActor, ETeamAttitude::Type TeamAttitude) const
+{
+	if (!OtherActor)
+		return false;
+	
+	IGenericTeamAgentInterface* OwnerTeamAgentInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
+	if (OwnerTeamAgentInterface)
+	{
+		return OwnerTeamAgentInterface->GetTeamAttitudeTowards(*OtherActor) == TeamAttitude;
+	}
+	
+	return false;
+}
+
 ACharacter* UBaseGameplayAbility::GetOwningAvatarCharacter()
 {
 	if (!AvatarCharacter)
@@ -150,4 +252,13 @@ void UBaseGameplayAbility::ApplyGameplayEffectToHitReultActor(const FHitResult& 
 	EffectSpechandle.Data->SetContext(EffectContext);
 	
 	ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), EffectSpechandle, UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitResult.GetActor()));
+}
+
+void UBaseGameplayAbility::SendLocalGameplayEvent(const FGameplayTag& Tag, const FGameplayEventData& EventData)
+{
+	UAbilitySystemComponent* OwnerASC = GetAbilitySystemComponentFromActorInfo();
+	if (OwnerASC)
+	{
+		OwnerASC->HandleGameplayEvent(Tag, &EventData);
+	}
 }

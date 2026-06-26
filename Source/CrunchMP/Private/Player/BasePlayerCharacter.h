@@ -20,6 +20,7 @@ public:
 	ABasePlayerCharacter();
 	virtual void PawnClientRestart() override; // First Time Character is Spawned in Client Side.
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 
 private:
 	
@@ -50,6 +51,9 @@ private:
 	class UInputAction* IA_LearnAbilityLeader;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	class UInputAction* IA_UseInventoryItem;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TMap<EAbilityInputID, class UInputAction*> IA_GameplayAbility;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -59,6 +63,7 @@ private:
 	void Move(const FInputActionValue& Value);
 	void LearnAbilityLeaderDown(const FInputActionValue& Value);
 	void LearnAbilityLeaderUp(const FInputActionValue& Value);
+	void UseInventoryItem(const FInputActionValue& Value);
 	bool bIsLearnAbilityLeaderDown = false;
 	
 	void HandleAbilityInput(const FInputActionValue& Value, EAbilityInputID InputID);
@@ -86,4 +91,8 @@ private:
 	
 	void LerpCamToLocalOffSet(const FVector& CamOffSet);
 	void TickCamLocalOffSetLerp(FVector CamOffSet);
+	
+//Inventory
+private:
+	class UInventoryComponent* InventoryComponent;
 };

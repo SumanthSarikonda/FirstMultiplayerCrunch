@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.6",
+	"EngineAssociation": "{00136BC9-4A40-4754-B2F4-5A8729F350A2}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -12,7 +12,8 @@
 				"Engine",
 				"GameplayAbilities",
 				"UMG",
-				"AIModule"
+				"AIModule",
+				"CoreUObject"
 			]
 		}
 	],

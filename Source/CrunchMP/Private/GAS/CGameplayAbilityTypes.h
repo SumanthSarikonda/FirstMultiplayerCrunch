@@ -9,6 +9,7 @@ enum class EAbilityInputID : uint8
 {
 	None                    UMETA(DisplayName = "None"),
 	BasicAttack             UMETA(DisplayName = "Basic Attack"),
+	Aim                     UMETA(DisplayName = "Aim"),
 	Ability1                UMETA(DisplayName = "Ability One"),
 	Ability2                UMETA(DisplayName = "Ability Two"),
 	Ability3                UMETA(DisplayName = "Ability Three"),

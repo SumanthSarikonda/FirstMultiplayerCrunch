@@ -82,8 +82,12 @@ private:
 	float RightSpeed;
 	bool bISJumping;
 	bool bIsAiming = false;
+	
 	UPROPERTY(EditAnywhere, Category = "Animation")
-	float YawSpeedSmoothLerpSpeed;
+	float YawSpeedSmoothLerpSpeed = 1.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	float YawSpeedLerpToZeroSpeed = 30.f;
 	
 	FRotator BodyPreviousRotation;
 	FRotator LookRotOffset;
